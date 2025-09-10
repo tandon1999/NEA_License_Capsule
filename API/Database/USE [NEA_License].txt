@@ -1,0 +1,139 @@
+USE [NEA_License]
+GO
+/****** Object:  Schema [AUTH]    Script Date: 9/10/2025 5:46:46 PM ******/
+CREATE SCHEMA [AUTH]
+GO
+/****** Object:  Table [AUTH].[tblRoles]    Script Date: 9/10/2025 5:46:46 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [AUTH].[tblRoles](
+	[RoleId] [int] IDENTITY(1,1) NOT NULL,
+	[RoleName] [nvarchar](100) NOT NULL,
+	[IsActive] [bit] NOT NULL,
+	[CreatedDate] [datetime] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[RoleId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [AUTH].[tblusers]    Script Date: 9/10/2025 5:46:46 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [AUTH].[tblusers](
+	[UserId] [int] IDENTITY(1,1) NOT NULL,
+	[FullName] [nvarchar](200) NULL,
+	[Username] [nvarchar](100) NULL,
+	[Email] [nvarchar](200) NULL,
+	[Password] [nvarchar](200) NULL,
+	[Hash] [nvarchar](max) NULL,
+	[Salt] [nvarchar](max) NULL,
+	[RoleId] [nvarchar](max) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[UserId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+SET IDENTITY_INSERT [AUTH].[tblRoles] ON 
+GO
+INSERT [AUTH].[tblRoles] ([RoleId], [RoleName], [IsActive], [CreatedDate]) VALUES (1, N'Admin', 1, CAST(N'2025-04-15T15:22:41.910' AS DateTime))
+GO
+INSERT [AUTH].[tblRoles] ([RoleId], [RoleName], [IsActive], [CreatedDate]) VALUES (2, N'User', 1, CAST(N'2025-04-15T15:22:41.910' AS DateTime))
+GO
+SET IDENTITY_INSERT [AUTH].[tblRoles] OFF
+GO
+SET IDENTITY_INSERT [AUTH].[tblusers] ON 
+GO
+INSERT [AUTH].[tblusers] ([UserId], [FullName], [Username], [Email], [Password], [Hash], [Salt], [RoleId]) VALUES (1, N'Suman Tandan', N'Suman', N'sumantandan1999@gmail.com', N'Shy6GIs+hFYJfsUZMAoN43L0pciosaKhmd8fAyX9Ez8=', N'', N'', N'1')
+GO
+SET IDENTITY_INSERT [AUTH].[tblusers] OFF
+GO
+/****** Object:  StoredProcedure [AUTH].[spLogin]    Script Date: 9/10/2025 5:46:46 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE   PROCEDURE [AUTH].[spLogin]
+@Flag nvarchar(10) = null,
+@Username nvarchar(100) = null,
+@UserId int = null,
+@Password nvarchar(max) = null,
+@FullName nvarchar(200) = null,
+@Email nvarchar(200) = null, 
+@Hash nvarchar(max) = null,
+@Salt nvarchar(max) = null,
+@CreatedBy int =null,
+@RoleId int = null
+AS
+BEGIN
+	IF @Flag = 'S'
+	BEGIN
+		select UserId,UserName as Username,Password,FullName,Email,Hash,Salt,u.RoleId,r.RoleName from Auth.tblusers u with(nolock)
+		join Auth.tblRoles r with(nolock) on r.RoleId = u.RoleId
+		where UPPER(Username)=UPPER(@Username);
+	END
+
+	IF @Flag = 'C'
+	BEGIN
+	IF @UserId = 0
+		BEGIN
+			IF EXISTS(select 'X' from AUTH.tblusers where Username=@Username)
+			BEGIN
+				;throw 51002, 'Username already taken, please choose another one',0;
+			END
+			ELSE
+			BEGIN
+				BEGIN TRY
+				BEGIN TRAN
+					Insert into AUTH.tblusers(FullName, Username, Email, Password,Salt,Hash,RoleId)
+					Values(@FullName,@Username,@Email,@Password,@Hash,@Salt,1)
+					select 'User Details Created Successfully' as Messages;
+				COMMIT
+				END TRY
+				BEGIN CATCH
+					ROLLBACK;
+					select ERROR_MESSAGE() as Message, 1 as succeeded;
+				END CATCH
+			END
+		END
+		ELSE
+		BEGIN
+			BEGIN TRY
+				BEGIN TRAN
+					UPDATE AUTH.tblusers SET 
+					FullName = @FullName,Username = @Username,Email = @Email,Hash=@Hash,Salt=@Salt,RoleId=@RoleId
+					WHERE UserId=@UserId;
+					select 'User Details Updated Successfully' as Messages;
+			COMMIT
+			END TRY
+			BEGIN CATCH
+				ROLLBACK;
+				select ERROR_MESSAGE() as Message, 1 as succeeded;
+			END CATCH
+		END
+		
+	END
+
+	IF @Flag= 'D'
+	BEGIN
+		delete from AUTH.tblusers where UserId=@UserId;
+		select 'User Deleted Successfully' as Messages;
+	END
+
+	IF @Flag= 'I'
+	BEGIN
+		select * from AUTH.tblusers where UserId=@UserId;
+	END
+END
+
+
+
+
+
+GO
