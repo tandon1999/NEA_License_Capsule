@@ -137,3 +137,28 @@ END
 
 
 GO
+
+
+Create table tblQuestionSetup
+(
+QID int identity(1,1),
+Question nvarchar(max),
+CreatedBy int,
+CreatedDate datetime,
+ModifiedBy int,
+ModifiedDate datetime
+)
+
+create table tblAnswerList
+(
+AID int Primary key identity(1,1),
+Answer nvarchar(max),
+QID int foreign key references tblQuestionSetup(QID),
+IsCorrect bit,
+IsSelected bit,
+CreatedBy int,
+CreatedDate datetime
+)
+
+select * from tblQuestionSetup
+select * from tblAnswerList

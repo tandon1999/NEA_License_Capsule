@@ -1,5 +1,7 @@
 ﻿using API.Services.Implementation.Auth;
+using API.Services.Implementation.Setup;
 using API.Services.Interface.Auth;
+using API.Services.Interface.Setup;
 using Microsoft.OpenApi.Models;
 using Shared.DataAccess.Dapper;
 using Shared.DataAccess.GenericRepository;
@@ -19,6 +21,7 @@ namespace API.Configuration
             services.AddTransient<IDapperServices, DapperServices>();
             services.AddTransient<IEncryptionService, EncryptionService>();
             services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<IQuestionSetupService, QuestionSetupService>();
             return services;
         }
         internal static IServiceCollection AddService(this IServiceCollection services)

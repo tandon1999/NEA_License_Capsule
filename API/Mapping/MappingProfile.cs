@@ -1,11 +1,13 @@
-﻿using AutoMapper;
+﻿using API.Param.Setup;
+using API.RequestModel.Setup;
+using AutoMapper;
 namespace API.Mapping
 {
     public class MappingProfile : Profile
     {
         public MappingProfile()
         {
-          /*  CreateMap<ServiceBookingParam,ServiceBookingRequestModel>().ReverseMap();*/
+            CreateMap<QuestionSetupParam, QuestionSetupRequestModel>().ReverseMap();
 
         }
     }
