@@ -138,7 +138,6 @@ END
 
 GO
 
-
 Create table tblQuestionSetup
 (
 QID int identity(1,1),
@@ -162,3 +161,4 @@ CreatedDate datetime
 
 select * from tblQuestionSetup
 select * from tblAnswerList
+
